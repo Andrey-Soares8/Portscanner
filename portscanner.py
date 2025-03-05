@@ -9,8 +9,10 @@ def get_ip_from_url(url):
     """Resolve o endereço IP de um domínio ou URL."""
     if url.startswith("https://"):
         url = url[len("https://"):]
+
     if url.startswith("http://"):
         url = url[len("http://"):]
+
     if "/" in url:
         url = url.split("/")[0]
     
@@ -19,7 +21,7 @@ def get_ip_from_url(url):
     except socket.gaierror:
         return None
 
-def scan_port(ip, port, results_text, open_ports):
+def scan_port(ip, port, results_text, open_ports, closed_ports):
     """Verifica se uma porta está aberta no IP especificado."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socket.setdefaulttimeout(random.uniform(0.5, 1.5))  # Tempo aleatório para evitar bloqueios
@@ -30,28 +32,34 @@ def scan_port(ip, port, results_text, open_ports):
         open_ports.append(port)
         msg = f"Port {port} is OPEN\n"
         results_text.insert(tk.END, msg)
-        results_text.yview(tk.END)
+    else:
+        closed_ports.append(port)
+        msg = f"Port {port} is CLOSED\n"
+        results_text.insert(tk.END, msg)
+    
+    results_text.yview(tk.END)  # Rolagem automática para mostrar as portas
     time.sleep(random.uniform(0.1, 0.3))  # Pequena pausa para evitar detecção como ataque
 
 def scan_ports(ip, results_text, quick_scan=False):
-    """Escaneia portas comuns e as primeiras 1024 portas do IP, evitando detecção."""
+    """Escaneia portas principais ou todas as primeiras 1024 portas do IP."""
     common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 8080]  # Lista de portas mais comuns
     open_ports = []  # Lista para armazenar portas abertas
+    closed_ports = []  # Lista para armazenar portas fechadas
     
     def scan_and_update(port):
-        scan_port(ip, port, results_text, open_ports)
+        scan_port(ip, port, results_text, open_ports, closed_ports)
     
     if quick_scan:
-        ports_to_scan = common_ports
+        ports_to_scan = common_ports  # Apenas as portas mais comuns
     else:
-        ports_to_scan = list(range(1, 1025))
+        ports_to_scan = list(range(1, 1025))  # Escaneia todas as primeiras 1024 portas
     
     for port in ports_to_scan:
         Thread(target=scan_and_update, args=(port,)).start()
         time.sleep(random.uniform(0.2, 0.5))  # Pequena pausa entre os scans
     
     # Aguarda a conclusão das threads e exibe os resultados
-    root.after(5000, lambda: results_text.insert(tk.END, f"\nOpen ports: {open_ports}\n"))
+    root.after(5000, lambda: results_text.insert(tk.END, f"\nOpen ports: {open_ports}\nClosed ports: {closed_ports}\n"))
 
 def start_scan(quick_scan=False):
     """Inicia o processo de escaneamento de portas."""
