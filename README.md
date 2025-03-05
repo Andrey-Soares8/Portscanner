@@ -3,7 +3,7 @@
 Este é um scanner de portas simples feito em Python com interface gráfica usando Tkinter. O programa permite realizar dois tipos de escaneamento:
 
 - 🔍 **Quick Scan**: Verifica apenas as portas mais comuns.
-- 🛠 **Full Scan**: Verifica todas as portas de 1 a 1024.
+- 🛠 **Full Scan**: Verifica todas as portas de 1 a 1024. Ao final, o código retorna todas as portas abertas.
 
 ## 🎯 Funcionalidades
 
